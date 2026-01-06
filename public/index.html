@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Earning App</title>
+</head>
+<body>
+
+<h2 id="user-name">Loading...</h2>
+<img id="user-photo" width="80"><br>
+Balance: <b><span id="user-balance">0</span> TK</b><br><br>
+
+<button id="watch-ad-btn">Watch Ad (+2 TK)</button>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const tg = window.Telegram.WebApp;
+  tg.ready(); tg.expand();
+
+  const user = tg.initDataUnsafe.user;
+  const API = '/api';
+
+  const res = await fetch(API + '/user', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(user)
+  });
+  let data = await res.json();
+
+  document.getElementById('user-name').innerText =
+    data.first_name + ' ' + data.last_name;
+  document.getElementById('user-photo').src =
+    data.photo_url || 'https://via.placeholder.com/80';
+  document.getElementById('user-balance').innerText =
+    Number(data.balance).toFixed(2);
+
+  document.getElementById('watch-ad-btn').onclick = async () => {
+    await fetch(API + '/watch-ad', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ userId: data.id, value: 2 })
+    });
+
+    data.balance += 2;
+    document.getElementById('user-balance').innerText =
+      data.balance.toFixed(2);
+  };
+});
+</script>
+
+</body>
+</html>
